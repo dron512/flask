@@ -1,11 +1,363 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>주말에 뭐 보지? 🎬</title>
+  <style>
+    /* ── 기본 리셋 & 넷플릭스 다크 테마 ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #141414;
+      color: #e5e5e5;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      background: linear-gradient(180deg, #000 0%, transparent 100%);
+      padding: 30px 40px 20px;
+      text-align: center;
+    }
+
+    header .logo {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #e50914;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: #aaa;
+      font-size: 1rem;
+      margin-bottom: 24px;
+    }
+
+    /* ── 버튼 영역 ── */
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      padding: 14px 32px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn:hover { transform: scale(1.05); opacity: 0.9; }
+
+    .btn-primary {
+      background-color: #e50914;
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background-color: #fff;
+      color: #141414;
+    }
+
+    /* ── 카드 그리드 ── */
+    #card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 30px 40px;
+    }
+
+    .card {
+      background: #1f1f1f;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 30px rgba(229, 9, 20, 0.4);
+    }
+
+    .card img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .card-genre {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+
+    .card-rating {
+      font-size: 0.9rem;
+      color: #f5c518;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .card-summary {
+      font-size: 0.8rem;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    .card-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: #e50914;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .card-link:hover { text-decoration: underline; }
+
+    /* ── 빈 상태 안내 ── */
+    #empty-msg {
+      text-align: center;
+      color: #555;
+      font-size: 1.1rem;
+      padding: 60px 0;
+      grid-column: 1 / -1;
+    }
+
+    /* ── 랜덤 추천 모달 ── */
+    #modal-overlay {
+      display: none;           /* 기본: 숨김 */
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s;
+    }
+
+    /* 모달이 열릴 때 flex로 변경 */
+    #modal-overlay.active { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    #modal-box {
+      background: #1f1f1f;
+      border: 2px solid #e50914;
+      border-radius: 12px;
+      max-width: 420px;
+      width: 90%;
+      overflow: hidden;
+      animation: popIn 0.35s ease;
+      position: relative;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    #modal-box img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+    }
+
+    #modal-body {
+      padding: 20px;
+    }
+
+    #modal-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    #modal-genre { color: #aaa; font-size: 0.9rem; margin-bottom: 8px; }
+    #modal-rating { color: #f5c518; font-weight: 700; margin-bottom: 10px; }
+    #modal-summary { color: #ccc; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px; }
+
+    #modal-link {
+      display: inline-block;
+      background: #e50914;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    #modal-close {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      font-size: 1.6rem;
+      color: #fff;
+      background: none;
+      border: none;
+      cursor: pointer;
+      line-height: 1;
+      z-index: 10;
+    }
+
+    #modal-close:hover { color: #e50914; }
+
+    /* ── 반응형: 모바일 ── */
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.8rem; }
+      #card-container { padding: 20px 16px; }
+    }
+  </style>
 </head>
 <body>
-    <h1>안녕하세요</h1>
+
+  <!-- ── 헤더 영역 ── -->
+  <header>
+    <div class="logo">NETFLIX</div>
+    <h1>🎬 주말에 뭐 보지?</h1>
+    <p>버튼을 눌러 오늘 밤 볼 작품을 골라보세요!</p>
+
+    <div class="btn-group">
+      <!-- 버튼 1: 평점 높은 순 정렬 -->
+      <button class="btn btn-secondary" onclick="loadSorted()">
+        ⭐ 평점 높은 순 정렬
+      </button>
+      <!-- 버튼 2: 랜덤 추천 -->
+      <button class="btn btn-primary" onclick="loadRandom()">
+        🎲 뭐 볼지 랜덤 추천!
+      </button>
+    </div>
+  </header>
+
+  <!-- ── 카드 목록 ── -->
+  <div id="card-container">
+    <p id="empty-msg">위 버튼을 눌러 작품을 불러오세요 🍿</p>
+  </div>
+
+  <!-- ── 랜덤 추천 모달 ── -->
+  <div id="modal-overlay">
+    <div id="modal-box">
+      <!-- 닫기 버튼 -->
+      <button id="modal-close" onclick="closeModal()">✕</button>
+      <img id="modal-img" src="" alt="포스터" />
+      <div id="modal-body">
+        <div id="modal-title"></div>
+        <div id="modal-genre"></div>
+        <div id="modal-rating"></div>
+        <div id="modal-summary"></div>
+        <a id="modal-link" href="#" target="_blank">▶ 넷플릭스에서 보기</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =============================================
+    // 카드 HTML 생성 함수 (재사용)
+    // movie: { title, genre, rating, poster, summary, link }
+    // =============================================
+    function createCard(movie) {
+      return `
+        <div class="card">
+          <img src="${movie.poster}" alt="${movie.title} 포스터"
+               onerror="this.src='https://via.placeholder.com/400x300/1f1f1f/e50914?text=No+Image'" />
+          <div class="card-body">
+            <div class="card-title">${movie.title}</div>
+            <div class="card-genre">${movie.genre}</div>
+            <div class="card-rating">⭐ ${movie.rating} / 10</div>
+            <div class="card-summary">${movie.summary}</div>
+            <a class="card-link" href="${movie.link}" target="_blank">▶ 넷플릭스에서 보기</a>
+          </div>
+        </div>
+      `;
+    }
+
+    // =============================================
+    // 버튼 1: 평점 높은 순 정렬
+    // Flask /api/sorted 엔드포인트 호출 (Fetch API)
+    // =============================================
+    async function loadSorted() {
+      try {
+        const response = await fetch("/api/sorted");   // 비동기 GET 요청
+        const movies   = await response.json();         // JSON 파싱
+
+        const container = document.getElementById("card-container");
+        container.innerHTML = movies.map(createCard).join("");  // 카드 렌더링
+      } catch (err) {
+        alert("데이터를 불러오는 데 실패했습니다. 서버를 확인해주세요.");
+        console.error(err);
+      }
+    }
+
+    // =============================================
+    // 버튼 2: 랜덤 추천
+    // Flask /api/random 엔드포인트 호출 → 모달 팝업
+    // =============================================
+    async function loadRandom() {
+      try {
+        const response = await fetch("/api/random");   // 비동기 GET 요청
+        const movie    = await response.json();         // JSON 파싱
+
+        // 모달에 데이터 채우기
+        document.getElementById("modal-img").src         = movie.poster;
+        document.getElementById("modal-title").textContent   = movie.title;
+        document.getElementById("modal-genre").textContent   = movie.genre;
+        document.getElementById("modal-rating").textContent  = `⭐ ${movie.rating} / 10`;
+        document.getElementById("modal-summary").textContent = movie.summary;
+        document.getElementById("modal-link").href        = movie.link;
+
+        // 모달 열기
+        document.getElementById("modal-overlay").classList.add("active");
+      } catch (err) {
+        alert("데이터를 불러오는 데 실패했습니다. 서버를 확인해주세요.");
+        console.error(err);
+      }
+    }
+
+    // =============================================
+    // 모달 닫기
+    // =============================================
+    function closeModal() {
+      document.getElementById("modal-overlay").classList.remove("active");
+    }
+
+    // 모달 배경(오버레이) 클릭 시에도 닫힘
+    document.getElementById("modal-overlay").addEventListener("click", function(e) {
+      if (e.target === this) closeModal();
+    });
+  </script>
+
 </body>
 </html>
